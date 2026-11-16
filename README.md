@@ -6,7 +6,7 @@ An open-source grid logo maker. Pick a construction grid, fill its cells, and ex
 
 Gridmark runs entirely in the browser. There is no account, no server and no paywall: all 24 grids are free.
 
-![Gridmark with a mark drawn on the Flower of life grid](docs/screenshot-blueprint.png)
+![A square drawn on the Square grid, then cut and ringed using the Dial grid](docs/screenshot-dark.png)
 
 It is a free alternative to grid logo tools such as CreateX by LogoFX. It is an independent project, written from scratch, and is not affiliated with LogoFX.
 
@@ -22,13 +22,12 @@ It is a free alternative to grid logo tools such as CreateX by LogoFX. It is an 
 - **Export** SVG or PNG (up to 4096 px), trimmed to the drawing or the full sheet, with a transparent or solid background. Or copy the SVG straight to the clipboard.
 - **Share links.** The whole drawing is packed into the URL, so a link is all you need to send.
 - **Autosave** in the browser, with undo and redo.
-- **Blueprint and paper themes**, and a layout that works on a phone.
+- **Dark and light themes** that follow your system, and a layout that works on a phone.
+- **A neutral interface.** The app itself is grey, so the only colours on screen are the ones in your mark.
 
-![A square drawn on the Square grid, then cut and ringed using the Dial grid](docs/screenshot-grids.png)
-
-| Paper theme | Export |
+| Light theme | Export |
 | --- | --- |
-| ![Paper theme](docs/screenshot-paper.png) | ![Export panel](docs/screenshot-export.png) |
+| ![Light theme](docs/screenshot-light.png) | ![Export panel](docs/screenshot-export.png) |
 
 ## Run it
 
@@ -66,7 +65,7 @@ Open http://localhost:3000.
 
 ## Stack
 
-Next.js 16 (App Router, static export), React 19, TypeScript, plain CSS, [Lucide](https://lucide.dev) icons, Vitest. The geometry engine in `src/lib/geometry.ts` has no dependencies.
+Next.js 16 (App Router, static export), React 19, TypeScript, plain CSS, the [Jost](https://indestructibletype.com/Jost.html) typeface, [Lucide](https://lucide.dev) icons, Vitest. The geometry engine in `src/lib/geometry.ts` has no dependencies.
 
 ## Licence
 

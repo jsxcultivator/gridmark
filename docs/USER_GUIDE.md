@@ -4,8 +4,12 @@
 
 - **Sheet** in the middle: a 240 x 240 unit artboard with the grid's guides drawn on it. The corner ticks are crop marks, not part of the drawing.
 - **Tools** on the left (along the bottom on a phone).
-- **Grids** on the right. On a phone, tap the grid name in the status bar to open the list.
+- **Grids** on the right, with the current grid's name and what it is good for at the top. Thumbnails show the middle of each grid, enlarged. On a phone, tap the grid name in the status bar to open the list.
 - **Status bar** under the sheet: the current grid, how many cells are filled, and zoom.
+
+The interface is neutral grey on purpose, so it does not tint how you see your colours. On the sheet, thin blue lines are the guides and the magenta outline is the cell under the pointer. Neither is part of the drawing.
+
+The theme follows your system setting until you switch it with the sun or moon button; after that your choice is remembered.
 
 ## Drawing
 
@@ -40,7 +44,7 @@ A trackpad two-finger scroll moves the sheet. Pinch, or hold `Ctrl` and scroll, 
 
 ## Colour
 
-The first swatch is **ink**. It follows the theme (white on blueprint, black on paper) and you choose black or white when you export. Use it for single-colour marks.
+The first swatch is **ink**. It follows the theme (white on dark, black on light) and you choose black or white when you export. Use it for single-colour marks.
 
 The other swatches are fixed colours. **Custom** opens the browser colour picker for anything else.
 

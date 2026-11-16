@@ -1,47 +1,56 @@
 /*
- * Gridmark borrows from the drafting table: a cyanotype blueprint by default,
- * and white paper ruled in non-photo blue as the light theme.
+ * The interface has no colour of its own. Panels, buttons and text are
+ * neutral greys, as in the drawing tools designers already use, so a mark is
+ * judged against nothing but itself. Colour is kept for the sheet, and it
+ * means something there: construction lines are guide blue, and the cell
+ * under the pointer is the magenta of a smart guide.
  */
 
 :root {
-  --radius: 8px;
+  --radius: 7px;
   --radius-small: 5px;
-  --rail: 56px;
-  --side: 296px;
-  --top: 52px;
-  font-family: var(--font-ui), "Segoe UI", system-ui, sans-serif;
+  --rail: 52px;
+  --side: 288px;
+  --top: 48px;
+  font-family: var(--font-ui), "Century Gothic", "Segoe UI", system-ui, sans-serif;
 }
 
-[data-theme="blueprint"] {
+[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #0c2444;
-  --sheet: #133463;
-  --panel: #0a1d38;
-  --raised: #12305a;
-  --line: rgba(173, 205, 255, 0.16);
-  --guide: rgba(190, 216, 255, 0.4);
-  --ink: #f5f8fc;
-  --text: #e4edf9;
-  --muted: #8ea8cb;
-  --accent: #ffc83d;
-  --accent-ink: #1d1602;
-  --shadow: 0 18px 40px rgba(2, 10, 24, 0.5);
+  --bg: #1a1a1a;
+  --sheet: #0c0c0c;
+  --panel: #232323;
+  --raised: #2d2d2d;
+  --hover: #363636;
+  --line: rgba(255, 255, 255, 0.09);
+  --line-strong: rgba(255, 255, 255, 0.22);
+  --ink: #f7f7f7;
+  --on-ink: #141414;
+  --text: #ebebeb;
+  --muted: #9b9b9b;
+  --guide: rgba(98, 180, 255, 0.5);
+  --pick: #ff4fb0;
+  --focus: #6bb4ff;
+  --shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
 }
 
-[data-theme="paper"] {
+[data-theme="light"] {
   color-scheme: light;
-  --bg: #e4e8e2;
-  --sheet: #fcfcf9;
-  --panel: #f3f5f0;
+  --bg: #e3e3e3;
+  --sheet: #ffffff;
+  --panel: #f5f5f5;
   --raised: #ffffff;
-  --line: rgba(22, 44, 84, 0.15);
-  --guide: rgba(52, 112, 200, 0.46);
-  --ink: #14171c;
-  --text: #18202c;
-  --muted: #5b6879;
-  --accent: #1f4fd8;
-  --accent-ink: #ffffff;
-  --shadow: 0 18px 40px rgba(30, 45, 70, 0.16);
+  --hover: #e9e9e9;
+  --line: rgba(0, 0, 0, 0.1);
+  --line-strong: rgba(0, 0, 0, 0.28);
+  --ink: #141414;
+  --on-ink: #ffffff;
+  --text: #1c1c1c;
+  --muted: #6a6a6a;
+  --guide: rgba(0, 118, 224, 0.42);
+  --pick: #e3168a;
+  --focus: #0b6fd8;
+  --shadow: 0 16px 40px rgba(0, 0, 0, 0.16);
 }
 
 * {
@@ -57,8 +66,8 @@ body {
 body {
   background: var(--bg);
   color: var(--text);
-  font-size: 14px;
-  line-height: 1.45;
+  font-size: 14.5px;
+  line-height: 1.4;
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
 }
@@ -75,12 +84,13 @@ button {
 }
 
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
 
 a {
   color: inherit;
+  text-underline-offset: 2px;
 }
 
 /* ---- layout ---------------------------------------------------------------- */
@@ -100,7 +110,7 @@ a {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 12px 0 14px;
+  padding: 0 10px 0 13px;
   background: var(--panel);
   border-bottom: 1px solid var(--line);
   position: relative;
@@ -111,29 +121,29 @@ a {
   display: flex;
   align-items: center;
   gap: 9px;
-  font-size: 17px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
   text-decoration: none;
 }
 
 .brand svg {
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
 }
 
 .brand-a {
-  fill: var(--accent);
+  fill: var(--ink);
 }
 
 .brand-b {
-  fill: var(--ink);
+  fill: var(--pick);
 }
 
 .topbar-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .rail {
@@ -141,8 +151,8 @@ a {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
-  padding: 10px 0;
+  gap: 8px;
+  padding: 8px 0;
   background: var(--panel);
   border-right: 1px solid var(--line);
   position: relative;
@@ -152,8 +162,8 @@ a {
 .group {
   display: flex;
   flex-direction: inherit;
-  gap: 4px;
-  padding-bottom: 10px;
+  gap: 2px;
+  padding-bottom: 8px;
   border-bottom: 1px solid var(--line);
 }
 
@@ -184,10 +194,10 @@ a {
 .icon-btn {
   display: grid;
   place-items: center;
-  width: 38px;
-  height: 38px;
+  width: 36px;
+  height: 36px;
   padding: 0;
-  border: 1px solid transparent;
+  border: 0;
   border-radius: var(--radius);
   background: none;
   color: var(--muted);
@@ -201,22 +211,26 @@ a {
 
 .icon-btn:hover:not(:disabled) {
   color: var(--text);
-  background: var(--raised);
+  background: var(--hover);
 }
 
+/* The tool in hand, or an open menu: solid ink, like a pressed key. */
 .icon-btn[aria-pressed="true"],
-.icon-btn[aria-expanded="true"] {
-  color: var(--accent-ink);
-  background: var(--accent);
+.icon-btn[aria-expanded="true"],
+.icon-btn[aria-pressed="true"]:hover,
+.icon-btn[aria-expanded="true"]:hover {
+  color: var(--on-ink);
+  background: var(--ink);
 }
 
+/* A setting that is switched on but is not the tool in hand. */
 .icon-btn[data-on="true"]:not([aria-expanded="true"]) {
-  color: var(--accent);
-  border-color: var(--accent);
+  color: var(--text);
+  box-shadow: inset 0 0 0 1.5px var(--line-strong);
 }
 
 .icon-btn:disabled {
-  opacity: 0.35;
+  opacity: 0.32;
   cursor: default;
 }
 
@@ -224,28 +238,28 @@ a {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  height: 34px;
-  padding: 0 13px;
+  height: 32px;
+  padding: 0 12px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--raised);
-  font-weight: 600;
+  font-weight: 500;
   white-space: nowrap;
 }
 
 .btn:hover {
-  border-color: var(--muted);
+  background: var(--hover);
 }
 
-.btn-primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--accent-ink);
+.btn-primary,
+.btn-primary:hover {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--on-ink);
 }
 
 .btn-primary:hover {
-  border-color: var(--accent);
-  filter: brightness(1.06);
+  opacity: 0.88;
 }
 
 .swatch {
@@ -253,7 +267,15 @@ a {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  box-shadow: inset 0 0 0 1px var(--line), 0 0 0 1px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 0 0 1px var(--line-strong);
+}
+
+/* The colour button shows a colour, so it cannot turn solid ink when open:
+   white on white would hide the very thing it is showing. */
+.icon-btn.swatch-trigger[aria-expanded="true"],
+.icon-btn.swatch-trigger[aria-expanded="true"]:hover {
+  background: var(--hover);
+  box-shadow: inset 0 0 0 1.5px var(--line-strong);
 }
 
 /* ---- popover panels -------------------------------------------------------- */
@@ -268,25 +290,25 @@ a {
   padding: 12px;
   background: var(--raised);
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: 10px;
   box-shadow: var(--shadow);
 }
 
 .rail .panel {
-  left: calc(100% + 12px);
+  left: calc(100% + 10px);
   top: -6px;
 }
 
 .panel-export {
   right: 0;
-  top: calc(100% + 10px);
-  width: 320px;
+  top: calc(100% + 8px);
+  width: 328px;
   display: grid;
   gap: 12px;
 }
 
 .panel-colour {
-  width: 196px;
+  width: 198px;
   display: grid;
   gap: 12px;
 }
@@ -304,13 +326,13 @@ a {
   width: 30px;
   height: 30px;
   padding: 0;
-  border: 1px solid transparent;
+  border: 0;
   border-radius: 50%;
   background: none;
 }
 
 .swatch-btn[aria-pressed="true"] {
-  border-color: var(--accent);
+  box-shadow: 0 0 0 1.5px var(--ink);
 }
 
 .swatch-btn svg {
@@ -321,28 +343,32 @@ a {
 
 .panel-menu {
   display: grid;
-  gap: 2px;
-  padding: 6px;
-  width: 224px;
+  gap: 1px;
+  padding: 5px;
+  width: 226px;
 }
 
 .panel-menu button {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 10px;
+  padding: 7px 9px;
   border: 0;
   border-radius: var(--radius-small);
   background: none;
+  color: var(--muted);
   text-align: left;
 }
 
 .panel-menu button:hover {
-  background: var(--panel);
+  background: var(--hover);
+  color: var(--text);
 }
 
 .panel-menu button[aria-checked="true"] {
-  color: var(--accent);
+  color: var(--text);
+  font-weight: 500;
+  background: var(--hover);
 }
 
 .field {
@@ -366,7 +392,7 @@ a {
 
 .field input[type="range"] {
   width: 150px;
-  accent-color: var(--accent);
+  accent-color: var(--ink);
 }
 
 input[type="color"] {
@@ -383,26 +409,33 @@ input[type="color"] {
   align-items: center;
   gap: 2px;
   padding: 2px;
-  border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--panel);
 }
 
 .seg button {
   height: 26px;
-  padding: 0 9px;
+  padding: 0 10px;
   border: 0;
   border-radius: var(--radius-small);
   background: none;
   color: var(--muted);
-  font-size: 13px;
   white-space: nowrap;
 }
 
-.seg button[aria-pressed="true"] {
-  background: var(--raised);
+.seg button:hover {
   color: var(--text);
-  box-shadow: 0 0 0 1px var(--line);
+}
+
+.seg button[aria-pressed="true"] {
+  background: var(--hover);
+  color: var(--text);
+  font-weight: 500;
+}
+
+[data-theme="light"] .seg button[aria-pressed="true"] {
+  background: var(--raised);
+  box-shadow: 0 0 0 1px var(--line), 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
 .seg input[type="color"] {
@@ -411,29 +444,29 @@ input[type="color"] {
   margin-left: 4px;
 }
 
+/* The preview sits on a checkerboard, the usual sign for "transparent". */
 .preview {
   display: grid;
   place-items: center;
-  height: 150px;
-  padding: 12px;
-  border: 1px solid var(--line);
+  height: 156px;
+  padding: 14px;
   border-radius: var(--radius);
   background-color: #ffffff;
-  background-image: linear-gradient(45deg, #e9ecef 25%, transparent 25% 75%, #e9ecef 75%),
-    linear-gradient(45deg, #e9ecef 25%, transparent 25% 75%, #e9ecef 75%);
+  background-image: linear-gradient(45deg, #e8e8e8 25%, transparent 25% 75%, #e8e8e8 75%),
+    linear-gradient(45deg, #e8e8e8 25%, transparent 25% 75%, #e8e8e8 75%);
   background-size: 16px 16px;
   background-position: 0 0, 8px 8px;
 }
 
 .preview[data-dark="true"] {
-  background-color: #1b2533;
-  background-image: linear-gradient(45deg, #232f40 25%, transparent 25% 75%, #232f40 75%),
-    linear-gradient(45deg, #232f40 25%, transparent 25% 75%, #232f40 75%);
+  background-color: #161616;
+  background-image: linear-gradient(45deg, #222 25%, transparent 25% 75%, #222 75%),
+    linear-gradient(45deg, #222 25%, transparent 25% 75%, #222 75%);
 }
 
 .preview svg {
   max-width: 100%;
-  max-height: 124px;
+  max-height: 128px;
   width: auto;
   height: auto;
 }
@@ -482,7 +515,7 @@ input[type="color"] {
 
 .sheet-edge {
   fill: none;
-  stroke: var(--guide);
+  stroke: var(--line-strong);
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
   pointer-events: none;
@@ -504,9 +537,9 @@ input[type="color"] {
 }
 
 .hover {
-  fill: var(--accent);
-  fill-opacity: 0.38;
-  stroke: var(--accent);
+  fill: var(--pick);
+  fill-opacity: 0.3;
+  stroke: var(--pick);
   stroke-width: 1.5;
   vector-effect: non-scaling-stroke;
   pointer-events: none;
@@ -514,16 +547,31 @@ input[type="color"] {
 
 .hover-erase {
   fill: var(--sheet);
-  fill-opacity: 0.55;
+  fill-opacity: 0.6;
   stroke-dasharray: 4 3;
+}
+
+.hint {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--raised);
+  color: var(--muted);
+  white-space: nowrap;
+  pointer-events: none;
 }
 
 .status {
   display: flex;
   align-items: center;
-  gap: 14px;
-  height: 40px;
-  padding: 0 10px;
+  gap: 12px;
+  height: 38px;
+  padding: 0 8px 0 12px;
   background: var(--panel);
   border-top: 1px solid var(--line);
 }
@@ -532,6 +580,7 @@ input[type="color"] {
   flex: 1;
   margin: 0;
   color: var(--muted);
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -546,7 +595,7 @@ input[type="color"] {
   border: 1px solid var(--line);
   border-radius: var(--radius-small);
   background: none;
-  font-weight: 600;
+  font-weight: 500;
   white-space: nowrap;
 }
 
@@ -557,54 +606,81 @@ input[type="color"] {
 }
 
 .zoom-value {
-  min-width: 52px;
+  min-width: 54px;
   height: 28px;
   border: 0;
+  border-radius: var(--radius-small);
   background: none;
   font-variant-numeric: tabular-nums;
   text-align: center;
 }
 
+.zoom-value:hover {
+  background: var(--hover);
+}
+
 .toast {
   position: absolute;
   left: 50%;
-  bottom: 56px;
+  bottom: 54px;
   transform: translateX(-50%);
   max-width: calc(100% - 32px);
-  padding: 9px 14px;
+  padding: 8px 14px;
   border-radius: var(--radius);
   background: var(--ink);
-  color: var(--sheet);
-  font-weight: 600;
+  color: var(--on-ink);
+  font-weight: 500;
   box-shadow: var(--shadow);
   pointer-events: none;
 }
 
 /* ---- grid library ---------------------------------------------------------- */
 
+.side-head {
+  padding: 14px 16px 13px;
+  border-bottom: 1px solid var(--line);
+}
+
+.side-head h1 {
+  margin: 0 0 3px;
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.side-head p {
+  margin: 0;
+  /* Two lines, so the list below does not jump as the grid changes. */
+  min-height: 2.8em;
+  color: var(--muted);
+}
+
 .library {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 4px 14px 14px;
+  padding: 2px 16px 16px;
   scrollbar-width: thin;
+  scrollbar-color: var(--hover) transparent;
 }
 
 .library h2 {
   margin: 14px 0 8px;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: inherit;
+  font-weight: 500;
   color: var(--muted);
 }
 
 .thumbs {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  gap: 12px 8px;
 }
 
 .thumb {
+  scroll-margin: 14px;
   display: grid;
+  align-content: start;
   gap: 5px;
   padding: 0;
   border: 0;
@@ -616,49 +692,54 @@ input[type="color"] {
   display: block;
   width: 100%;
   aspect-ratio: 1;
-  border: 1px solid var(--line);
   border-radius: var(--radius-small);
   background: var(--sheet);
+  box-shadow: 0 0 0 1px var(--line);
 }
 
 .thumb path {
   fill: none;
   stroke: var(--guide);
-  stroke-width: 2.6;
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
 }
 
 .thumb span {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 12px;
-  line-height: 1.25;
+  font-size: 13px;
+  line-height: 1.2;
   color: var(--muted);
 }
 
 .thumb:hover svg {
-  border-color: var(--muted);
+  box-shadow: 0 0 0 1px var(--line-strong);
+}
+
+.thumb:hover span {
+  color: var(--text);
 }
 
 .thumb[aria-pressed="true"] svg {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 1px var(--accent);
+  box-shadow: 0 0 0 2px var(--ink);
 }
 
 .thumb[aria-pressed="true"] span {
   color: var(--text);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .side-note {
   margin: 0;
-  padding: 12px 14px;
+  padding: 11px 16px 12px;
   border-top: 1px solid var(--line);
   color: var(--muted);
   font-size: 13px;
 }
 
 /* ---- small screens --------------------------------------------------------- */
+
+.scrim {
+  display: none;
+}
 
 @media (max-width: 860px) {
   .app {
@@ -681,7 +762,7 @@ input[type="color"] {
   }
 
   .group {
-    padding: 0 10px 0 0;
+    padding: 0 8px 0 0;
     border-bottom: 0;
     border-right: 1px solid var(--line);
   }
@@ -694,7 +775,15 @@ input[type="color"] {
     position: fixed;
     left: 10px;
     top: auto;
-    bottom: 64px;
+    bottom: 60px;
+  }
+
+  .scrim {
+    display: block;
+    position: fixed;
+    inset: var(--top) 0 0 0;
+    z-index: 45;
+    background: rgba(0, 0, 0, 0.5);
   }
 
   .side {
@@ -705,13 +794,6 @@ input[type="color"] {
     transform: translateX(100%);
     transition: transform 0.18s ease;
     box-shadow: var(--shadow);
-  }
-
-  .scrim {
-    position: fixed;
-    inset: var(--top) 0 0 0;
-    z-index: 45;
-    background: rgba(4, 12, 26, 0.45);
   }
 
   .app[data-library="open"] .side {
@@ -734,23 +816,26 @@ input[type="color"] {
     justify-content: space-between;
   }
 
+  .hint {
+    top: 10px;
+    font-size: 13px;
+  }
+
   .panel-export {
     position: fixed;
     right: 8px;
     top: calc(var(--top) + 6px);
-    width: min(320px, calc(100vw - 16px));
+    width: min(328px, calc(100vw - 16px));
   }
 }
 
+/* On a wide screen the grid name in the status bar is a label, not a button:
+   the library is already open beside it. */
 @media (min-width: 861px) {
-  .scrim {
-    display: none;
-  }
-
   .grid-name {
     pointer-events: none;
     border-color: transparent;
-    padding-left: 2px;
+    padding-left: 0;
   }
 }
 

@@ -95,6 +95,17 @@ Persistence:
 
 The sheet is one SVG. Pan and zoom are a single `transform` on a group. Guides are one path with `vector-effect: non-scaling-stroke`, clipped to the sheet. The drawing is one path per colour, merged from its pieces. The hovered cell is one extra path. The DOM stays small whatever the grid.
 
+## Interface
+
+All styling is in `globals.css`, driven by a small set of CSS variables defined once per theme.
+
+- **Chrome is achromatic.** Panels, buttons and text are neutral greys with no tint, in both themes. A mark should be judged against nothing but itself, which is why drawing tools are grey.
+- **Colour means something, and only on the sheet.** `--guide` (blue) draws construction lines. `--pick` (magenta) outlines the cell under the pointer. They borrow the guide and smart-guide colours designers know from other tools. Neither is used for buttons or decoration.
+- **State is shown with ink, not colour.** The tool in hand and the primary action are solid `--ink` with `--on-ink` text. A setting that is merely switched on gets an outline.
+- **Type is Jost**, a face drawn from circles and straight lines, like the grids.
+
+The theme is set before first paint by a small inline script in `layout.tsx`. It uses a stored choice if there is one and the system setting otherwise.
+
 ## Export
 
 `buildSvg` computes the bounding box of the filled cells (or uses the full sheet), then writes an optional background rectangle and one merged path per colour. PNG export draws that SVG onto a canvas at the chosen size.

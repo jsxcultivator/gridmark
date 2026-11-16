@@ -63,7 +63,7 @@ const SYMMETRIES: { id: Symmetry; label: string }[] = [
 
 const PNG_SIZES = [512, 1024, 2048, 4096];
 
-type Theme = "blueprint" | "paper";
+type Theme = "dark" | "light";
 type Panel = "colour" | "mirror" | "export" | null;
 
 function fitView(w: number, h: number, size: number): View {
@@ -98,7 +98,7 @@ export default function Editor() {
   const [colour, setColour] = useState<string>(INK);
   const [symmetry, setSymmetry] = useState<Symmetry>("none");
   const [showGuides, setShowGuides] = useState(true);
-  const [theme, setTheme] = useState<Theme>("blueprint");
+  const [theme, setTheme] = useState<Theme>("dark");
   const [panel, setPanel] = useState<Panel>(null);
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [view, setView] = useState<View | null>(null);
@@ -133,7 +133,7 @@ export default function Editor() {
     openShared();
     window.addEventListener("hashchange", openShared);
 
-    setTheme(document.documentElement.dataset.theme === "paper" ? "paper" : "blueprint");
+    setTheme(document.documentElement.dataset.theme === "light" ? "light" : "dark");
     setReady(true);
     return () => window.removeEventListener("hashchange", openShared);
   }, []);
@@ -142,13 +142,18 @@ export default function Editor() {
     if (ready) saveDoc(doc);
   }, [doc, ready]);
 
-  useEffect(() => {
-    if (!ready) return;
-    document.documentElement.dataset.theme = theme;
-    try {
-      localStorage.setItem("gridmark:theme", theme);
-    } catch {}
-  }, [theme, ready]);
+  // Until someone picks a theme by hand, the page follows the system setting
+  // (see the script in layout.tsx), so only a deliberate choice is stored.
+  const toggleTheme = useCallback(() => {
+    setTheme((current) => {
+      const next: Theme = current === "dark" ? "light" : "dark";
+      document.documentElement.dataset.theme = next;
+      try {
+        localStorage.setItem("gridmark:theme", next);
+      } catch {}
+      return next;
+    });
+  }, []);
 
   // ---- view ------------------------------------------------------------------
   const fit = useMemo(
@@ -286,8 +291,8 @@ export default function Editor() {
       <header className="topbar">
         <a className="brand" href={REPO_URL} target="_blank" rel="noreferrer" title="Gridmark on GitHub">
           <svg viewBox="0 0 32 32" aria-hidden="true">
-            <path className="brand-a" d="M7 7h9a9 9 0 0 1 9 9H16V7zM7 16h9v9a9 9 0 0 1-9-9z" />
-            <path className="brand-b" d="M16 16h9v9h-9z" />
+            <path className="brand-a" d="M5 5h11a11 11 0 0 1 11 11H16V5zM5 16h11v11A11 11 0 0 1 5 16z" />
+            <path className="brand-b" d="M16 16h11v11H16z" />
           </svg>
           Gridmark
         </a>
@@ -407,7 +412,7 @@ export default function Editor() {
                           type="button"
                           aria-pressed={options.background !== null}
                           onClick={() =>
-                            setOptions((o) => ({ ...o, background: o.background ?? (inkOnDark ? "#12305a" : "#ffffff") }))
+                            setOptions((o) => ({ ...o, background: o.background ?? (inkOnDark ? "#111111" : "#ffffff") }))
                           }
                         >
                           Solid
@@ -440,11 +445,11 @@ export default function Editor() {
           <button
             type="button"
             className="icon-btn"
-            onClick={() => setTheme((t) => (t === "blueprint" ? "paper" : "blueprint"))}
-            title={theme === "blueprint" ? "Switch to paper" : "Switch to blueprint"}
-            aria-label={theme === "blueprint" ? "Switch to paper theme" : "Switch to blueprint theme"}
+            onClick={toggleTheme}
+            title={theme === "dark" ? "Switch to light" : "Switch to dark"}
+            aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
           >
-            {theme === "blueprint" ? <Sun size={18} /> : <Moon size={18} />}
+            {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
           </button>
         </div>
       </header>
@@ -466,7 +471,7 @@ export default function Editor() {
           <div className="anchor" data-panel>
             <button
               type="button"
-              className="icon-btn"
+              className="icon-btn swatch-trigger"
               aria-expanded={panel === "colour"}
               onClick={() => toggle("colour")}
               title="Colour"
@@ -484,7 +489,7 @@ export default function Editor() {
                       className="swatch-btn"
                       aria-pressed={colour === c}
                       aria-label={c === INK ? "Ink, follows the theme" : c}
-                      title={c === INK ? "Ink. White on blueprint, black on paper." : c}
+                      title={c === INK ? "Ink. White on dark, black on light." : c}
                       onClick={() => {
                         setColour(c);
                         setTool("draw");
@@ -586,15 +591,16 @@ export default function Editor() {
           onBegin={onBegin}
           onPaint={onPaint}
         />
+        {ready && filled === 0 && (
+          <p className="hint">Click a cell to fill it. Drag to fill several.</p>
+        )}
         <footer className="status">
           <button type="button" className="grid-name" onClick={() => setLibraryOpen((o) => !o)} title="Choose a grid">
             <LayoutGrid size={15} />
             {grid.name}
           </button>
           <p>
-            {filled === 0
-              ? "Click a cell to fill it. Drag to fill several."
-              : `${wholeCount} of ${arr.faces.length} cells filled`}
+            {wholeCount} of {arr.faces.length} cells filled
           </p>
           <div className="zoom">
             <button type="button" className="icon-btn small" onClick={() => zoomBy(0.8)} title="Zoom out (-)" aria-label="Zoom out">
@@ -620,6 +626,10 @@ export default function Editor() {
 
       {libraryOpen && <div className="scrim" onClick={() => setLibraryOpen(false)} />}
       <aside className="side">
+        <header className="side-head">
+          <h1>{grid.name}</h1>
+          <p>{grid.hint}</p>
+        </header>
         <GridLibrary
           activeId={doc.gridId}
           onPick={(id) => {
@@ -628,11 +638,11 @@ export default function Editor() {
           }}
         />
         <p className="side-note">
-          {grid.hint} Your drawing stays when you change grids. Gridmark is free and open source.{" "}
+          Your drawing stays when you change grids.{" "}
           <a href={REPO_URL} target="_blank" rel="noreferrer">
-            Read the source
-          </a>{" "}
-          or add your own grid.
+            Gridmark is open source
+          </a>
+          .
         </p>
       </aside>
     </div>

@@ -1,8 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import { Schibsted_Grotesk } from "next/font/google";
+import { Jost } from "next/font/google";
 import "./globals.css";
 
-const font = Schibsted_Grotesk({ subsets: ["latin"], variable: "--font-ui" });
+// Jost is drawn from circles and straight lines, the same parts every grid
+// here is made of.
+const font = Jost({ subsets: ["latin"], variable: "--font-ui" });
 
 export const metadata: Metadata = {
   title: "Gridmark, an open-source grid logo maker",
@@ -17,11 +19,13 @@ export const viewport: Viewport = {
 };
 
 // Set the theme before first paint so the page never flashes the wrong one.
-const themeScript = `try{var t=localStorage.getItem("gridmark:theme");document.documentElement.dataset.theme=t==="paper"?"paper":"blueprint"}catch(e){}`;
+// A stored choice wins; otherwise follow the system. "paper" and "blueprint"
+// are the names an earlier version stored.
+const themeScript = `try{var t=localStorage.getItem("gridmark:theme");if(t==="paper")t="light";if(t==="blueprint")t="dark";if(t!=="light"&&t!=="dark")t=matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";document.documentElement.dataset.theme=t}catch(e){}`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" data-theme="blueprint" className={font.variable} suppressHydrationWarning>
+    <html lang="en" data-theme="dark" className={font.variable} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>

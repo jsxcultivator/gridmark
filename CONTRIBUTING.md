@@ -33,6 +33,7 @@ CI runs the same three commands.
 - Keep the app client-only. No accounts, no tracking, no server.
 - Keep dependencies few. The geometry engine has none and should stay that way.
 - Write interface text in plain words and sentence case.
+- Keep the interface grey. Do not add accent colours to buttons or panels; colour belongs to the drawing, the guides and the hovered cell. The reasoning is in the architecture notes.
 
 ## Reporting a bug
 
