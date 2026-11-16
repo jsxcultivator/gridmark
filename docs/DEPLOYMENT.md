@@ -7,6 +7,36 @@ npm install
 npm run build     # writes out/
 ```
 
+## Cloudflare Pages
+
+The live demo at https://gridmark-21s.pages.dev is published this way, from a local build with the Wrangler CLI.
+
+Once per machine, sign in:
+
+```bash
+npx wrangler login
+```
+
+Once per Cloudflare account, create the project:
+
+```bash
+npx wrangler pages project create gridmark --production-branch main
+```
+
+Cloudflare prints the address the site will have. If the name is taken on `pages.dev` it adds a suffix, which is why the demo is `gridmark-21s` and not `gridmark`.
+
+Then, every time you want to publish:
+
+```bash
+npm run deploy
+```
+
+That runs `npm run build` and uploads `out/` with `wrangler pages deploy out --project-name gridmark --branch main`. If you named your project something else, change the name in the `deploy` script in `package.json`.
+
+Do not set `NEXT_PUBLIC_BASE_PATH` for this build. The site is served from the root of its `pages.dev` address.
+
+To have Cloudflare build on every push instead, connect the repository in the Cloudflare dashboard and use the settings in the table further down.
+
 ## GitHub Pages
 
 The repository ships with `.github/workflows/pages.yml`, which tests, builds and publishes on every push to `main`.
@@ -25,7 +55,7 @@ If you serve from a custom domain or a `<user>.github.io` repository, the site l
 
 Import the repository at vercel.com/new. Vercel detects Next.js and needs no settings.
 
-## Netlify and Cloudflare Pages
+## Netlify, or Cloudflare Pages building from Git
 
 | Setting | Value |
 | --- | --- |

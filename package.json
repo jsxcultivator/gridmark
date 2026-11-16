@@ -8,6 +8,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "npx serve out",
+    "deploy": "npm run build && npx wrangler pages deploy out --project-name gridmark --branch main",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },

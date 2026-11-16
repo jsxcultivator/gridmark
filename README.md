@@ -2,6 +2,8 @@
 
 An open-source grid logo maker. Pick a construction grid, fill its cells, and export the mark as clean SVG or PNG.
 
+**Try it: https://gridmark-21s.pages.dev**
+
 Gridmark runs entirely in the browser. There is no account, no server and no paywall: all 24 grids are free.
 
 ![Gridmark with a mark drawn on the Flower of life grid](docs/screenshot-blueprint.png)
@@ -43,19 +45,20 @@ Open http://localhost:3000.
 | `npm run dev` | Start the development server |
 | `npm run build` | Build the static site into `out/` |
 | `npm start` | Serve the built `out/` folder |
+| `npm run deploy` | Build and publish to Cloudflare Pages with Wrangler |
 | `npm test` | Run the unit tests |
 | `npm run typecheck` | Type-check without emitting |
 
 ## Host it
 
-`npm run build` writes plain static files to `out/`. Put that folder on any static host. The repository includes a GitHub Pages workflow; see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+`npm run build` writes plain static files to `out/`. Put that folder on any static host. The live demo runs on Cloudflare Pages, and the repository also includes a GitHub Pages workflow; see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ## Documentation
 
 - [User guide](docs/USER_GUIDE.md): tools, shortcuts, export options, share links.
 - [Adding a grid](docs/GRIDS.md): how grids are defined and how to write your own.
 - [Architecture](docs/ARCHITECTURE.md): how guides become cells, and how cells become outlines.
-- [Deployment](docs/DEPLOYMENT.md): GitHub Pages, Vercel, Netlify, Cloudflare Pages, or your own server.
+- [Deployment](docs/DEPLOYMENT.md): Cloudflare Pages, GitHub Pages, Vercel, Netlify, or your own server.
 - [Contributing](CONTRIBUTING.md)
 
 ## Stack
