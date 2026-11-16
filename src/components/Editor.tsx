@@ -26,11 +26,10 @@ import {
 } from "lucide-react";
 import Canvas, { type Symmetry, type Tool, type View } from "./Canvas";
 import GridLibrary from "./GridLibrary";
-import { buildArrangement, type Arrangement } from "@/lib/geometry";
 import { gridById } from "@/lib/grids";
+import { arrangementFor, wholeCells } from "@/lib/overlay";
 import {
   INK,
-  activeCells,
   decodeShare,
   encodeShare,
   initialHistory,
@@ -67,16 +66,6 @@ const PNG_SIZES = [512, 1024, 2048, 4096];
 type Theme = "blueprint" | "paper";
 type Panel = "colour" | "mirror" | "export" | null;
 
-const arrangements = new Map<string, Arrangement>();
-function arrangementFor(gridId: string): Arrangement {
-  let a = arrangements.get(gridId);
-  if (!a) {
-    a = buildArrangement(gridById(gridId).build());
-    arrangements.set(gridId, a);
-  }
-  return a;
-}
-
 function fitView(w: number, h: number, size: number): View {
   const k = (Math.min(w, h) * 0.84) / size;
   return { k, x: (w - size * k) / 2, y: (h - size * k) / 2 };
@@ -94,9 +83,15 @@ function SymmetryIcon({ mode }: { mode: Symmetry }) {
 export default function Editor() {
   const [history, dispatch] = useReducer(reducer, undefined, initialHistory);
   const doc = history.present;
-  const cells = activeCells(doc);
   const grid = gridById(doc.gridId);
-  const arr = useMemo(() => arrangementFor(doc.gridId), [doc.gridId]);
+  // The grid on the sheet, and the drawing, which may span several grids.
+  const arr = useMemo(() => arrangementFor([doc.gridId]), [doc.gridId]);
+  const pieces = useMemo(() => arrangementFor(doc.basis), [doc.basis]);
+  const fills = doc.cells;
+  const cells = useMemo(
+    () => wholeCells(doc.cells, doc.gridId, doc.basis),
+    [doc.cells, doc.gridId, doc.basis],
+  );
 
   const [ready, setReady] = useState(false);
   const [tool, setTool] = useState<Tool>("draw");
@@ -113,8 +108,9 @@ export default function Editor() {
   const [format, setFormat] = useState<"svg" | "png">("svg");
   const [pngSize, setPngSize] = useState(1024);
 
-  const filled = Object.keys(cells).length;
-  const usesInk = useMemo(() => Object.values(cells).includes(INK), [cells]);
+  const filled = Object.keys(fills).length;
+  const wholeCount = Object.keys(cells).length;
+  const usesInk = useMemo(() => Object.values(fills).includes(INK), [fills]);
 
   // ---- load and save ---------------------------------------------------------
   useEffect(() => {
@@ -127,7 +123,7 @@ export default function Editor() {
       const shared = decodeShare(window.location.hash);
       if (!shared) return;
       if (Object.keys(shared.cells).length > 0) {
-        dispatch({ type: "replace", gridId: shared.gridId, cells: shared.cells });
+        dispatch({ type: "replace", doc: shared });
       } else {
         dispatch({ type: "grid", id: shared.gridId });
       }
@@ -209,13 +205,13 @@ export default function Editor() {
   }, [doc, say]);
 
   const exported = useMemo(
-    () => (panel === "export" && filled > 0 ? buildSvg(arr, cells, options) : null),
-    [panel, filled, arr, cells, options],
+    () => (panel === "export" && filled > 0 ? buildSvg(pieces, fills, options) : null),
+    [panel, filled, pieces, fills, options],
   );
 
   const downloadFile = useCallback(async () => {
     if (filled === 0) return;
-    const result = buildSvg(arr, cells, options);
+    const result = buildSvg(pieces, fills, options);
     const name = `gridmark-${doc.gridId}`;
     try {
       if (format === "svg") {
@@ -227,17 +223,17 @@ export default function Editor() {
     } catch (err) {
       say(err instanceof Error ? err.message : "The download failed.");
     }
-  }, [filled, arr, cells, options, doc.gridId, format, pngSize, say]);
+  }, [filled, pieces, fills, options, doc.gridId, format, pngSize, say]);
 
   const copySvg = useCallback(async () => {
     if (filled === 0) return;
     try {
-      await navigator.clipboard.writeText(buildSvg(arr, cells, options).svg);
+      await navigator.clipboard.writeText(buildSvg(pieces, fills, options).svg);
       say("SVG copied. Paste it into Figma, Illustrator or your code.");
     } catch {
       say("The browser blocked clipboard access. Download the SVG instead.");
     }
-  }, [filled, arr, cells, options, say]);
+  }, [filled, pieces, fills, options, say]);
 
   // ---- keyboard ----------------------------------------------------------------
   useEffect(() => {
@@ -280,16 +276,6 @@ export default function Editor() {
     window.addEventListener("pointerdown", close, true);
     return () => window.removeEventListener("pointerdown", close, true);
   }, [panel]);
-
-  const used = useMemo(
-    () =>
-      new Set(
-        Object.entries(doc.drawings)
-          .filter(([, c]) => Object.keys(c).length > 0)
-          .map(([id]) => id),
-      ),
-    [doc.drawings],
-  );
 
   const toggle = (p: Exclude<Panel, null>) => setPanel((cur) => (cur === p ? null : p));
   const swatch = (c: string) => (c === INK ? "var(--ink)" : c);
@@ -588,6 +574,8 @@ export default function Editor() {
         <Canvas
           arr={arr}
           cells={cells}
+          pieces={pieces}
+          fills={fills}
           tool={tool}
           colour={colour}
           symmetry={symmetry}
@@ -606,7 +594,7 @@ export default function Editor() {
           <p>
             {filled === 0
               ? "Click a cell to fill it. Drag to fill several."
-              : `${filled} of ${arr.faces.length} cells filled`}
+              : `${wholeCount} of ${arr.faces.length} cells filled`}
           </p>
           <div className="zoom">
             <button type="button" className="icon-btn small" onClick={() => zoomBy(0.8)} title="Zoom out (-)" aria-label="Zoom out">
@@ -634,14 +622,13 @@ export default function Editor() {
       <aside className="side">
         <GridLibrary
           activeId={doc.gridId}
-          used={used}
           onPick={(id) => {
             dispatch({ type: "grid", id });
             setLibraryOpen(false);
           }}
         />
         <p className="side-note">
-          {grid.hint} Gridmark is free and open source.{" "}
+          {grid.hint} Your drawing stays when you change grids. Gridmark is free and open source.{" "}
           <a href={REPO_URL} target="_blank" rel="noreferrer">
             Read the source
           </a>{" "}

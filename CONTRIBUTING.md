@@ -24,7 +24,7 @@ CI runs the same three commands.
 ## Where things go
 
 - A new grid: one entry in `src/lib/grids.ts`. Read [docs/GRIDS.md](docs/GRIDS.md) first. The tests check every grid automatically.
-- Geometry changes: `src/lib/geometry.ts`, with a test in `tests/geometry.test.ts`. [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) explains the algorithm.
+- Geometry changes: `src/lib/geometry.ts`, with a test in `tests/geometry.test.ts`. Be careful with the tolerances at the top of the file; the architecture notes explain why they are what they are. [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) explains the algorithm.
 - UI changes: `src/components/` and `src/app/globals.css`. Check both themes and a narrow window.
 
 ## Ground rules

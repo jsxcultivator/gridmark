@@ -25,14 +25,12 @@ const Thumb = memo(function Thumb({ grid }: { grid: GridDef }) {
 
 interface Props {
   activeId: string;
-  /** Ids of grids that already hold a drawing. */
-  used: Set<string>;
   onPick: (id: string) => void;
 }
 
 const FAMILIES: GridFamily[] = ["straight", "round", "radial"];
 
-export default function GridLibrary({ activeId, used, onPick }: Props) {
+export default function GridLibrary({ activeId, onPick }: Props) {
   return (
     <nav className="library" aria-label="Grids">
       {FAMILIES.map((family) => (
@@ -49,10 +47,7 @@ export default function GridLibrary({ activeId, used, onPick }: Props) {
                 onClick={() => onPick(g.id)}
               >
                 <Thumb grid={g} />
-                <span>
-                  {g.name}
-                  {used.has(g.id) && <i aria-label="has a drawing" />}
-                </span>
+                <span>{g.name}</span>
               </button>
             ))}
           </div>

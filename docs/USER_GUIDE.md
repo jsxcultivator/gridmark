@@ -48,9 +48,21 @@ The other swatches are fixed colours. **Custom** opens the browser colour picker
 
 With a mirror on, every cell you fill or clear is repeated across the centre of the sheet. A mirrored cell is found by reflecting a point inside the cell you touched, so mirroring works best on grids that are symmetric about the centre. Every grid is symmetric left to right. Tumbling blocks, Bricks, Three centres and Fan are not symmetric top to bottom, so on those four the top and bottom mirror can land on a cell of a different shape.
 
-## Grids
+## Changing grids
 
-Each grid keeps its own drawing. Switching grids does not delete anything, and a dot next to a grid's name shows that it holds a drawing.
+There is one drawing, and it stays on the sheet when you pick another grid. Only the guides change.
+
+The cells you click are always those of the grid on the sheet, so a new grid gives you new shapes to work with on the same drawing:
+
+- Filling a cell adds its whole shape to the drawing, over whatever was there.
+- Erasing a cell removes exactly that shape, even from the middle of something drawn on another grid.
+- Clicking a cell that is only partly filled fills the rest of it.
+
+For example, draw a block on Square, switch to Dial, and erase a ring out of it.
+
+The cell count in the status bar counts cells of the current grid that are completely filled, so it changes from grid to grid while the drawing does not.
+
+A drawing that uses many different grids takes a little longer to switch and paint, because each grid adds its guides to the set the drawing is cut along. Clearing the sheet starts fresh.
 
 ## Export
 
@@ -65,13 +77,13 @@ Click **Export** to open the panel. The preview shows exactly what will be saved
 
 **Copy SVG** puts the SVG markup on the clipboard. Paste it into Figma, Illustrator, Inkscape or straight into HTML.
 
-The SVG has one `<path>` per colour. Guides are never exported.
+The SVG has one `<path>` per colour. Straight runs are single lines and curves are true arcs, however many cells or grids they were built from. Guides are never exported.
 
 ## Share links
 
 **Copy link** copies a URL that holds the current grid and drawing. Anyone who opens it sees the same drawing and can keep editing. Nothing is uploaded: the drawing is in the part of the URL after `#`, which browsers do not send to the server.
 
-Opening a share link replaces your own drawing on that grid. Undo brings yours back.
+Opening a share link replaces your drawing. Undo brings yours back.
 
 ## Where drawings are kept
 

@@ -636,14 +636,6 @@ input[type="color"] {
   color: var(--muted);
 }
 
-.thumb i {
-  flex: none;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--accent);
-}
-
 .thumb:hover svg {
   border-color: var(--muted);
 }

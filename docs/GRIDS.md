@@ -68,20 +68,25 @@ The test suite builds every grid in `GRIDS` and checks that:
 - the cells add up to the area of the sheet,
 - no cell is smaller than 2 square units,
 - every cell can be found again from its own interior point,
-- the vertex, edge and cell counts satisfy Euler's formula.
+- the vertex, edge and cell counts satisfy Euler's formula,
+- the same holds when the grid is laid over each of the others.
 
 Then run `npm run dev` and fill some cells.
 
 ## What makes a good grid
 
 - **No slivers.** A circle that passes very close to a crossing, without going through it, leaves a cell too small to click. Move the circle so it goes exactly through the crossing, or well clear of it. The size test catches this.
-- **Meet exactly or not at all.** Points closer than 0.0001 units are treated as one point, so guides that are meant to cross at the same place must do so within that distance. Compute positions from one formula instead of typing rounded decimals.
+- **Meet exactly or not at all.** Guides that are meant to cross at one point must do so to within a billionth of a unit. Compute positions from one formula instead of typing rounded decimals: `30 * Math.sqrt(3)`, not `51.96`.
 - **Under about 1,500 cells.** More than that is slow to draw on and hard to use.
 - **Symmetric about the centre** if you can, so mirror drawing works. `parallels` and `rings` are centred by default.
 
 ## Rules that keep old drawings working
 
-Saved drawings and share links store cell numbers, and a cell's number comes from the order in which the engine finds it.
+Saved drawings and share links store piece numbers, and a piece's number comes from the order in which the engine finds it among the guides of the grids involved.
 
 - Never rename or reuse an `id`.
-- Changing a grid's guides renumbers its cells, which scrambles existing drawings on that grid. If a grid needs a real change, add it as a new grid with a new id and leave the old one in place.
+- Changing a grid's guides renumbers the pieces, which scrambles existing drawings and links that involve that grid. If a grid needs a real change, add it as a new grid with a new id and leave the old one in place.
+
+## Grids are used together
+
+A drawing can be continued on any other grid, so the engine lays your grid's guides over those of other grids. The test suite does this for your grid against every other grid, and for a sample of three at a time, and checks that the pieces still fit together. You do not need to design for it, but a failure there is a real bug worth reporting.

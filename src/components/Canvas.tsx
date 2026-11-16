@@ -16,8 +16,13 @@ export interface View {
 }
 
 interface Props {
+  /** The grid on the sheet: its guides, and the cells you click. */
   arr: Arrangement;
+  /** Cells of that grid that are filled edge to edge with one colour. */
   cells: Cells;
+  /** The drawing itself, which may have been made on other grids. */
+  pieces: Arrangement;
+  fills: Cells;
   tool: Tool;
   colour: string;
   symmetry: Symmetry;
@@ -58,7 +63,7 @@ const Guides = memo(function Guides({ arr }: { arr: Arrangement }) {
 });
 
 export default function Canvas(props: Props) {
-  const { arr, cells, tool, colour, symmetry, showGuides, view, onView, onSize, onBegin, onPaint } =
+  const { arr, cells, pieces, fills, tool, colour, symmetry, showGuides, view, onView, onSize, onBegin, onPaint } =
     props;
   const wrap = useRef<HTMLDivElement>(null);
   const [hover, setHover] = useState(-1);
@@ -305,7 +310,7 @@ export default function Canvas(props: Props) {
           </defs>
           <g transform={`translate(${view.x} ${view.y}) scale(${view.k})`}>
             <rect width={s} height={s} className="sheet" />
-            <Fills arr={arr} cells={cells} />
+            <Fills arr={pieces} cells={fills} />
             {showGuides && <Guides arr={arr} />}
             {hoverFace && (
               <path d={hoverFace.d} className={tool === "erase" ? "hover hover-erase" : "hover"} />

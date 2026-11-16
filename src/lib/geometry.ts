@@ -52,6 +52,11 @@ export interface Arrangement {
   guides: Primitive[];
   vertexCount: number;
   edgeCount: number;
+  /**
+   * Zero when the cells fit together as a flat sheet should (Euler's formula).
+   * Anything else means the engine tied cells in a knot. Used by the tests.
+   */
+  defect: number;
   /** Index of the cell containing the point, or -1. */
   locate(x: number, y: number): number;
   /** Outline of the union of the given cells, with shared edges removed. */
@@ -61,7 +66,16 @@ export interface Arrangement {
 }
 
 const TOL = 1e-7;
-const SNAP = 1e-4;
+// A line or circle counts as touching a circle only when it does so to within
+// rounding error. Anything looser treats two real, separate crossings as one
+// point, which contradicts where other guides cross nearby.
+const TAN = 1e-11;
+// Points closer than this are one vertex. Guides that are meant to meet at a
+// point do so to about a trillionth of a unit, so this leaves a wide margin.
+// It must not be much larger: when grids are laid over each other, a guide
+// from one can pass a hair away from the point where two others touch, and
+// merging those separate crossings ties the surrounding cells in a knot.
+const SNAP = 1e-9;
 const TAU = Math.PI * 2;
 
 const fmt = (n: number): string => {
@@ -249,9 +263,29 @@ export function buildArrangement(primitives: Primitive[], size = BOARD): Arrange
       const bdy = b.y2 - b.y1;
       const blen = Math.hypot(bdx, bdy);
       const den = adx * bdy - ady * bdx;
-      if (Math.abs(den) < 1e-10 * alen * blen) continue;
       const ex = b.x1 - a.x1;
       const ey = b.y1 - a.y1;
+      if (Math.abs(den) < 1e-10 * alen * blen) {
+        // Parallel. If the two lie on the same line and overlap, cut each at
+        // the other's endpoints so the shared stretch becomes identical edges,
+        // which are then stored once.
+        if (Math.abs(ex * ady - ey * adx) / alen > 1e-6) continue;
+        for (const [px, py] of [
+          [b.x1, b.y1],
+          [b.x2, b.y2],
+        ]) {
+          const t = ((px - a.x1) * adx + (py - a.y1) * ady) / (alen * alen);
+          if (t > 0 && t < 1) segCuts[i].push({ t, v: vertex(px, py) });
+        }
+        for (const [px, py] of [
+          [a.x1, a.y1],
+          [a.x2, a.y2],
+        ]) {
+          const u = ((px - b.x1) * bdx + (py - b.y1) * bdy) / (blen * blen);
+          if (u > 0 && u < 1) segCuts[j].push({ t: u, v: vertex(px, py) });
+        }
+        continue;
+      }
       const t = (ex * bdy - ey * bdx) / den;
       const u = (ex * ady - ey * adx) / den;
       const et = 1e-6 / alen;
@@ -276,9 +310,9 @@ export function buildArrangement(primitives: Primitive[], size = BOARD): Arrange
       const fx = s.x1 + t0 * dx;
       const fy = s.y1 + t0 * dy;
       const dist = Math.hypot(fx - c.cx, fy - c.cy);
-      if (dist > c.r + TOL) continue;
+      if (dist > c.r + TAN) continue;
       const ts: number[] = [];
-      if (Math.abs(dist - c.r) <= TOL) {
+      if (Math.abs(dist - c.r) <= TAN) {
         ts.push(t0);
       } else {
         const half = Math.sqrt(c.r * c.r - dist * dist) / len;
@@ -304,13 +338,13 @@ export function buildArrangement(primitives: Primitive[], size = BOARD): Arrange
       const dy = b.cy - a.cy;
       const d = Math.hypot(dx, dy);
       if (d < 1e-9) continue;
-      if (d > a.r + b.r + TOL || d < Math.abs(a.r - b.r) - TOL) continue;
+      if (d > a.r + b.r + TAN || d < Math.abs(a.r - b.r) - TAN) continue;
       const pts: [number, number][] = [];
       const ux = dx / d;
       const uy = dy / d;
-      if (Math.abs(d - (a.r + b.r)) <= TOL) {
+      if (Math.abs(d - (a.r + b.r)) <= TAN) {
         pts.push([a.cx + ux * a.r, a.cy + uy * a.r]);
-      } else if (Math.abs(d - Math.abs(a.r - b.r)) <= TOL) {
+      } else if (Math.abs(d - Math.abs(a.r - b.r)) <= TAN) {
         const sgn = a.r > b.r ? 1 : -1;
         pts.push([a.cx + sgn * ux * a.r, a.cy + sgn * uy * a.r]);
       } else {
@@ -349,9 +383,12 @@ export function buildArrangement(primitives: Primitive[], size = BOARD): Arrange
   const eCirc: number[] = []; // circle index, or -1 for a straight edge
   const eFrom: number[] = []; // start angle (arcs)
   const eSpan: number[] = []; // angular span (arcs), always > 0
+  const eDir: number[] = []; // direction a -> b of the guide it lies on (straight edges)
   const edgeKeys = new Set<string>();
 
-  segCuts.forEach((cuts) => {
+  segCuts.forEach((cuts, si) => {
+    const s = segs[si];
+    const dir = Math.atan2(s.y2 - s.y1, s.x2 - s.x1);
     cuts.sort((p, q) => p.t - q.t);
     for (let i = 0; i + 1 < cuts.length; i++) {
       const a = cuts[i].v;
@@ -365,6 +402,7 @@ export function buildArrangement(primitives: Primitive[], size = BOARD): Arrange
       eCirc.push(-1);
       eFrom.push(0);
       eSpan.push(0);
+      eDir.push(dir);
     }
   });
 
@@ -387,6 +425,7 @@ export function buildArrangement(primitives: Primitive[], size = BOARD): Arrange
       eCirc.push(ci);
       eFrom.push(p.a);
       eSpan.push(span);
+      eDir.push(0);
     }
   });
 
@@ -405,9 +444,10 @@ export function buildArrangement(primitives: Primitive[], size = BOARD): Arrange
     const e = h >> 1;
     const ci = eCirc[e];
     if (ci < 0) {
-      const o = orig(h);
-      const d = dest(h);
-      hAngle[h] = Math.atan2(vy[d] - vy[o], vx[d] - vx[o]);
+      // Use the guide's own direction. The end points have been snapped, so
+      // on a very short edge the direction between them is not reliable.
+      const a = h & 1 ? eDir[e] + Math.PI : eDir[e];
+      hAngle[h] = Math.atan2(Math.sin(a), Math.cos(a));
     } else {
       const c = circles[ci];
       const step = Math.min(1e-3 / c.r, eSpan[e] / 2);
@@ -466,6 +506,70 @@ export function buildArrangement(primitives: Primitive[], size = BOARD): Arrange
     return d + "Z";
   };
 
+  /**
+   * Path for an outline, with straight runs joined into single lines and
+   * runs along one circle joined into single arcs. Outlines of merged cells
+   * would otherwise carry a point at every guide they cross.
+   */
+  const outlineOf = (loop: number[]): string => {
+    const n = loop.length;
+    const continues = (p: number, q: number) => {
+      const cp = eCirc[p >> 1];
+      const cq = eCirc[q >> 1];
+      if (cp !== cq) return false;
+      if (cp >= 0) return (p & 1) === (q & 1);
+      const turn = Math.abs(hAngle[p] - hAngle[q]);
+      return turn < 1e-9 || Math.abs(turn - TAU) < 1e-9;
+    };
+    let start = -1;
+    for (let i = 0; i < n; i++) {
+      if (!continues(loop[(i + n - 1) % n], loop[i])) {
+        start = i;
+        break;
+      }
+    }
+    const whole = start < 0;
+    if (whole) {
+      // Every edge continues the one before: the outline is a single circle.
+      if (eCirc[loop[0] >> 1] < 0) return pathOf(loop);
+      start = 0;
+    }
+    const o = orig(loop[start]);
+    let d = `M${fmt(vx[o])} ${fmt(vy[o])}`;
+    for (let i = 0; i < n; ) {
+      const first = loop[(start + i) % n];
+      let last = first;
+      let span = eSpan[first >> 1];
+      let j = i + 1;
+      while (j < n && (whole || continues(last, loop[(start + j) % n]))) {
+        last = loop[(start + j) % n];
+        span += eSpan[last >> 1];
+        j++;
+      }
+      const to = dest(last);
+      if (eCirc[first >> 1] < 0) {
+        d += `L${fmt(vx[to])} ${fmt(vy[to])}`;
+      } else {
+        // Write long arcs as several short ones. An arc near a half turn is
+        // pinned down so loosely by its end points that rounding them to
+        // three decimals can move it by a quarter of a unit.
+        const c = circles[eCirc[first >> 1]];
+        const r = fmt(c.r);
+        const back = first & 1;
+        const from = back ? eFrom[first >> 1] + eSpan[first >> 1] : eFrom[first >> 1];
+        const parts = Math.max(1, Math.ceil(span / (TAU / 3) - 1e-9));
+        for (let k = 1; k <= parts; k++) {
+          const ang = from + (back ? -1 : 1) * ((span * k) / parts);
+          const x = k === parts ? vx[to] : c.cx + c.r * Math.cos(ang);
+          const y = k === parts ? vy[to] : c.cy + c.r * Math.sin(ang);
+          d += `A${r} ${r} 0 0 ${back ? 0 : 1} ${fmt(x)} ${fmt(y)}`;
+        }
+      }
+      i = j;
+    }
+    return d + "Z";
+  };
+
   interface Cycle {
     hes: number[];
     ring: Ring;
@@ -512,7 +616,7 @@ export function buildArrangement(primitives: Primitive[], size = BOARD): Arrange
   const faceComp: number[] = [];
 
   cycles.forEach((c) => {
-    if (Math.sign(c.signed) === outerSign || Math.abs(c.signed) < 1e-7) return;
+    if (Math.sign(c.signed) === outerSign) return;
     const id = faces.length;
     for (const h of c.hes) faceOf[h] = id;
     faceCycles.push([c.hes]);
@@ -563,8 +667,20 @@ export function buildArrangement(primitives: Primitive[], size = BOARD): Arrange
   }
 
   // ---- 6. Queries -------------------------------------------------------------
+  // Bucket the cells by bounding box so a lookup only tests nearby ones.
+  const N = 24;
+  const buckets: number[][] = Array.from({ length: N * N }, () => []);
+  const slot1 = (v: number) => Math.max(0, Math.min(N - 1, Math.floor((v / size) * N)));
+  for (const f of faces) {
+    for (let by = slot1(f.bbox[1]); by <= slot1(f.bbox[3]); by++) {
+      for (let bx = slot1(f.bbox[0]); bx <= slot1(f.bbox[2]); bx++) buckets[by * N + bx].push(f.id);
+    }
+  }
+
   const locate = (x: number, y: number): number => {
-    for (const f of faces) {
+    if (!(x >= 0 && x <= size && y >= 0 && y <= size)) return -1;
+    for (const id of buckets[slot1(y) * N + slot1(x)]) {
+      const f = faces[id];
       const b = f.bbox;
       if (x < b[0] || x > b[2] || y < b[1] || y > b[3]) continue;
       if (!pointInRing(f.rings[0], x, y)) continue;
@@ -611,7 +727,7 @@ export function buildArrangement(primitives: Primitive[], size = BOARD): Arrange
             while (!isRim(n) && guard++ < H * 4) n = next[n ^ 1];
             h = n;
           } while (h !== start && guard++ < H * 4);
-          d += pathOf(loop);
+          d += outlineOf(loop);
         }
       }
     }
@@ -635,5 +751,16 @@ export function buildArrangement(primitives: Primitive[], size = BOARD): Arrange
     return b;
   };
 
-  return { size, faces, guides, vertexCount: V, edgeCount: E, locate, merge, bounds };
+  // V - E + F = 2 for every connected piece of a flat drawing, where F counts
+  // every loop the walk found, slivers and outsides included.
+  const roots = new Set<number>();
+  let used = 0;
+  for (let v = 0; v < V; v++) {
+    if (out[v].length === 0) continue;
+    used++;
+    roots.add(find(v));
+  }
+  const defect = used - E + cycles.length - 2 * roots.size;
+
+  return { size, faces, guides, vertexCount: V, edgeCount: E, defect, locate, merge, bounds };
 }
