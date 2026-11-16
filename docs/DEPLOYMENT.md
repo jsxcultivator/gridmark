@@ -13,7 +13,9 @@ The repository ships with `.github/workflows/pages.yml`, which tests, builds and
 
 1. Push the repository to GitHub.
 2. Open **Settings -> Pages** and set **Source** to **GitHub Actions**.
-3. Push to `main`, or run the workflow by hand from the **Actions** tab.
+3. Push to `main`, or run **Deploy to GitHub Pages** by hand from the **Actions** tab.
+
+Until Pages is turned on, the workflow finishes without deploying and leaves a notice saying so.
 
 The site appears at `https://<user>.github.io/<repo>/`. The workflow sets `NEXT_PUBLIC_BASE_PATH` to `/<repo>` so assets resolve under that path.
 

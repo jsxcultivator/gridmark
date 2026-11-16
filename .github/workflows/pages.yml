@@ -1,7 +1,8 @@
 name: Deploy to GitHub Pages
 
 # Publishes the static build to https://<user>.github.io/<repo>/.
-# Turn it on once under Settings -> Pages -> Source: "GitHub Actions".
+# Turn Pages on once under Settings -> Pages -> Source: "GitHub Actions".
+# Until then this workflow does nothing and says so in its summary.
 
 on:
   push:
@@ -20,24 +21,44 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      enabled: ${{ steps.pages.outputs.enabled }}
     steps:
+      - name: Check that Pages is turned on
+        id: pages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh api "repos/${{ github.repository }}/pages" --silent 2>/dev/null; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::GitHub Pages is not turned on for this repository, so nothing was deployed. Turn it on under Settings > Pages > Source: GitHub Actions, then run this workflow again."
+          fi
       - uses: actions/checkout@v4
+        if: steps.pages.outputs.enabled == 'true'
       - uses: actions/setup-node@v4
+        if: steps.pages.outputs.enabled == 'true'
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
-      - run: npm test
-      - run: npm run build
+      - name: Install, test and build
+        if: steps.pages.outputs.enabled == 'true'
         env:
           NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
-      - run: touch out/.nojekyll
+        run: |
+          npm ci
+          npm test
+          npm run build
+          touch out/.nojekyll
       - uses: actions/upload-pages-artifact@v3
+        if: steps.pages.outputs.enabled == 'true'
         with:
           path: out
 
   deploy:
     needs: build
+    if: needs.build.outputs.enabled == 'true'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
